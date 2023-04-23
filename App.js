@@ -6,9 +6,17 @@ import { useState } from "react";
 export default function App() {
   const [working, setWorking] = useState(true);
   const [text, setText] = useState("");
+  const [toDos, setToDos] = useState({});
   const travel = () => setWorking(false);
   const work = () => setWorking(true);
   const onChangeText = (payload) => setText(payload);
+  const addToDo = () => {
+    if (text === "") return;
+    // useState를 사용할 때는 직접 변형을 시키면 않되기 때문에 아래의 Object.assign으로 Object를 state 수정없이 합칠 수 있다.
+    const newToDos = Object.assign({}, toDos, { [Date.now()]: { text, work: working } });
+    setToDos(newToDos);
+    setText("");
+  };
 
   return (
     <View style={styles.container}>
@@ -32,6 +40,8 @@ export default function App() {
         textAlign="center"
         onChangeText={onChangeText}
         value={text}
+        onSubmitEditing={addToDo}
+        returnKeyType="done"
       />
     </View>
   );
