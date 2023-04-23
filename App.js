@@ -1,5 +1,12 @@
 import { StatusBar } from "expo-status-bar";
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { theme } from "./colors";
 import { useState } from "react";
 
@@ -13,7 +20,7 @@ export default function App() {
   const addToDo = () => {
     if (text === "") return;
     // useState를 사용할 때는 직접 변형을 시키면 않되기 때문에 아래의 Object.assign으로 Object를 state 수정없이 합칠 수 있다.
-    const newToDos = Object.assign({}, toDos, { [Date.now()]: { text, work: working } });
+    const newToDos = { ...toDos, [Date.now()]: { text, work: working } }; // es6를 이용한 방법
     setToDos(newToDos);
     setText("");
   };
@@ -43,6 +50,17 @@ export default function App() {
         onSubmitEditing={addToDo}
         returnKeyType="done"
       />
+
+      <ScrollView>
+        {/* Object.keys 함수를 이용하면 Object들의 키를 배열로 반환해준다. */}
+        {Object.keys(toDos).map((key) => {
+          return (
+            <View key={key} style={styles.toDo}>
+              <Text style={styles.toDoText}>{toDos[key].text}</Text>
+            </View>
+          );
+        })}
+      </ScrollView>
     </View>
   );
 }
@@ -68,7 +86,18 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     paddingHorizontal: 20,
     borderRadius: 20,
-    marginTop: 20,
+    marginVertical: 20,
     fontSize: 18,
+  },
+  toDo: {
+    backgroundColor: theme.toDoBg,
+    marginBottom: 10,
+    padding: 20,
+    borderRadius: 15,
+  },
+  toDoText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "600",
   },
 });
