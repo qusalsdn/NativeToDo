@@ -1,5 +1,7 @@
 import { StatusBar } from "expo-status-bar";
 import {
+  ActivityIndicator,
+  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -10,6 +12,7 @@ import {
 import { theme } from "./colors";
 import { useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Fontisto } from "@expo/vector-icons";
 
 const STORAGE_KEY = "@toDos";
 
@@ -17,12 +20,14 @@ export default function App() {
   const [working, setWorking] = useState(true);
   const [text, setText] = useState("");
   const [toDos, setToDos] = useState({});
+  const [loading, setLoading] = useState(true);
   useEffect(() => {
     loadToDos();
   }, []);
   const travel = () => setWorking(false);
   const work = () => setWorking(true);
   const onChangeText = (payload) => setText(payload);
+
   const saveToDos = async (toSave) => {
     try {
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
@@ -30,14 +35,17 @@ export default function App() {
       console.log(error);
     }
   };
+
   const loadToDos = async () => {
     try {
       const s = await AsyncStorage.getItem(STORAGE_KEY);
       setToDos(JSON.parse(s));
+      setLoading(false);
     } catch (error) {
       console.log(error);
     }
   };
+
   const addToDo = async () => {
     if (text === "") return;
     // useState를 사용할 때는 직접 변형을 시키면 않되기 때문에 아래의 Object.assign으로 Object를 state 수정없이 합칠 수 있다.
@@ -45,6 +53,22 @@ export default function App() {
     setToDos(newToDos);
     await saveToDos(newToDos);
     setText("");
+  };
+
+  const deleteToDo = (key) => {
+    Alert.alert("삭제하시겠습니까?", "확실합니까?", [
+      { text: "취소" },
+      {
+        text: "확인",
+        style: "destructive",
+        onPress: () => {
+          const newToDos = { ...toDos };
+          delete newToDos[key];
+          setToDos(newToDos);
+          saveToDos(newToDos);
+        },
+      },
+    ]);
   };
 
   return (
@@ -73,18 +97,25 @@ export default function App() {
         returnKeyType="done"
       />
 
-      <ScrollView>
-        {/* Object.keys 함수를 이용하면 Object들의 키를 배열로 반환해준다. */}
-        {Object.keys(toDos).map((key) => {
-          return (
-            toDos[key].working === working && (
-              <View key={key} style={styles.toDo}>
-                <Text style={styles.toDoText}>{toDos[key].text}</Text>
-              </View>
-            )
-          );
-        })}
-      </ScrollView>
+      {loading ? (
+        <ActivityIndicator size={"large"} style={{ marginTop: 20 }} color={"white"} />
+      ) : (
+        <ScrollView>
+          {/* Object.keys 함수를 이용하면 Object들의 키를 배열로 반환해준다. */}
+          {Object.keys(toDos).map((key) => {
+            return (
+              toDos[key].working === working && (
+                <View key={key} style={styles.toDo}>
+                  <Text style={styles.toDoText}>{toDos[key].text}</Text>
+                  <TouchableOpacity onPress={() => deleteToDo(key)}>
+                    <Fontisto name="trash" size={20} color="white" />
+                  </TouchableOpacity>
+                </View>
+              )
+            );
+          })}
+        </ScrollView>
+      )}
     </View>
   );
 }
@@ -118,6 +149,9 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     padding: 20,
     borderRadius: 15,
+    flexDirection: "row",
+    alignContent: "center",
+    justifyContent: "space-between",
   },
   toDoText: {
     color: "white",
