@@ -58,7 +58,7 @@ export default function App() {
   const addToDo = async () => {
     if (text === "") return;
     // useState를 사용할 때는 직접 변형을 시키면 않되기 때문에 아래의 Object.assign으로 Object를 state 수정없이 합칠 수 있다.
-    const newToDos = { ...toDos, [Date.now()]: { text, working } }; // es6를 이용한 방법
+    const newToDos = { ...toDos, [Date.now()]: { text, working, complete: false } }; // es6를 이용한 방법
     setToDos(newToDos);
     await saveToDos(newToDos);
     setText("");
@@ -78,6 +78,20 @@ export default function App() {
         },
       },
     ]);
+  };
+
+  const toDoComplete = (key) => {
+    if (!toDos[key].complete) {
+      const newToDos = { ...toDos };
+      newToDos[key].complete = true;
+      setToDos(newToDos);
+      saveToDos(newToDos);
+    } else {
+      const newToDos = { ...toDos };
+      newToDos[key].complete = false;
+      setToDos(newToDos);
+      saveToDos(newToDos);
+    }
   };
 
   return (
@@ -115,10 +129,37 @@ export default function App() {
             return (
               toDos[key].working === working && (
                 <View key={key} style={styles.toDo}>
-                  <Text style={styles.toDoText}>{toDos[key].text}</Text>
-                  <TouchableOpacity onPress={() => deleteToDo(key)}>
-                    <Fontisto name="trash" size={20} color="white" />
-                  </TouchableOpacity>
+                  <View>
+                    <Text
+                      style={{
+                        ...styles.toDoText,
+                        textDecorationLine: toDos[key].complete ? "line-through" : "none",
+                        color: toDos[key].complete ? theme.grey : "white",
+                      }}
+                    >
+                      {toDos[key].text}
+                    </Text>
+                  </View>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                    }}
+                  >
+                    <TouchableOpacity
+                      style={{ marginRight: 20 }}
+                      onPress={() => toDoComplete(key)}
+                    >
+                      {toDos[key].complete === false ? (
+                        <Fontisto name="checkbox-passive" size={20} color="white" />
+                      ) : (
+                        <Fontisto name="checkbox-active" size={20} color="white" />
+                      )}
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => deleteToDo(key)}>
+                      <Fontisto name="trash" size={20} color="white" />
+                    </TouchableOpacity>
+                  </View>
                 </View>
               )
             );
