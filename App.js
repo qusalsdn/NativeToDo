@@ -13,6 +13,8 @@ import { theme } from "./colors";
 import { useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Fontisto } from "@expo/vector-icons";
+import { Feather } from "@expo/vector-icons";
+import { MaterialIcons } from "@expo/vector-icons";
 
 const STORAGE_KEY = "@toDos";
 const STARTSCREEN = "@startScreen";
@@ -22,6 +24,9 @@ export default function App() {
   const [text, setText] = useState("");
   const [toDos, setToDos] = useState({});
   const [loading, setLoading] = useState(true);
+  const [toDoId, setToDoId] = useState("");
+  const [editShow, setEditShow] = useState(false);
+  const [editText, setEditText] = useState("");
   useEffect(() => {
     loadToDos();
   }, []);
@@ -34,6 +39,7 @@ export default function App() {
     await AsyncStorage.setItem(STARTSCREEN, JSON.stringify(true));
   };
   const onChangeText = (payload) => setText(payload);
+  const onChageEditText = (payloed) => setEditText(payloed);
 
   const saveToDos = async (toSave) => {
     try {
@@ -78,6 +84,15 @@ export default function App() {
         },
       },
     ]);
+  };
+
+  const updateToDo = (key) => {
+    if (editText === "") return;
+    const newToDos = { ...toDos };
+    newToDos[key].text = editText;
+    setToDos(newToDos);
+    saveToDos(newToDos);
+    setEditShow(false);
   };
 
   const toDoComplete = (key) => {
@@ -129,16 +144,32 @@ export default function App() {
             return (
               toDos[key].working === working && (
                 <View key={key} style={styles.toDo}>
-                  <View>
-                    <Text
-                      style={{
-                        ...styles.toDoText,
-                        textDecorationLine: toDos[key].complete ? "line-through" : "none",
-                        color: toDos[key].complete ? theme.grey : "white",
-                      }}
-                    >
-                      {toDos[key].text}
-                    </Text>
+                  <View style={{ flex: 1, justifyContent: "center" }}>
+                    {toDoId === key && editShow ? (
+                      <TextInput
+                        style={styles.input}
+                        placeholder={
+                          working ? "할 일을 추가하세요." : "어디에 가고 싶습니까?"
+                        }
+                        textAlign="center"
+                        onChangeText={onChageEditText}
+                        value={editText}
+                        onSubmitEditing={() => updateToDo(key)}
+                        returnKeyType="done"
+                      />
+                    ) : (
+                      <Text
+                        style={{
+                          ...styles.toDoText,
+                          textDecorationLine: toDos[key].complete
+                            ? "line-through"
+                            : "none",
+                          color: toDos[key].complete ? theme.grey : "white",
+                        }}
+                      >
+                        {toDos[key].text}
+                      </Text>
+                    )}
                   </View>
                   <View
                     style={{
@@ -146,8 +177,29 @@ export default function App() {
                       alignItems: "center",
                     }}
                   >
+                    {!toDos[key].complete && editShow && toDoId === key ? (
+                      <TouchableOpacity onPress={() => setEditShow(!editShow)}>
+                        <MaterialIcons
+                          name="cancel"
+                          size={25}
+                          color="white"
+                          style={{ marginLeft: 10 }}
+                        />
+                      </TouchableOpacity>
+                    ) : (
+                      <TouchableOpacity
+                        onPress={() => {
+                          setToDoId(key);
+                          setEditShow(!editShow);
+                          setEditText(toDos[key].text);
+                        }}
+                        style={{ marginLeft: 10 }}
+                      >
+                        <Feather name="edit" size={25} color="white" />
+                      </TouchableOpacity>
+                    )}
                     <TouchableOpacity
-                      style={{ marginRight: 20 }}
+                      style={{ marginHorizontal: 10 }}
                       onPress={() => toDoComplete(key)}
                     >
                       {toDos[key].complete === false ? (
@@ -197,7 +249,7 @@ const styles = StyleSheet.create({
   toDo: {
     backgroundColor: theme.toDoBg,
     marginBottom: 10,
-    padding: 20,
+    padding: 15,
     borderRadius: 15,
     flexDirection: "row",
     alignContent: "center",
