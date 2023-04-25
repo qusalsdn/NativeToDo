@@ -64,7 +64,7 @@ export default function App() {
   const addToDo = async () => {
     if (text === "") return;
     // useState를 사용할 때는 직접 변형을 시키면 않되기 때문에 아래의 Object.assign으로 Object를 state 수정없이 합칠 수 있다.
-    const newToDos = { ...toDos, [Date.now()]: { text, working, complete: false } }; // es6를 이용한 방법
+    const newToDos = { [Date.now()]: { text, working, complete: false }, ...toDos }; // es6를 이용한 방법
     setToDos(newToDos);
     await saveToDos(newToDos);
     setText("");
