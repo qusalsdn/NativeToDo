@@ -177,7 +177,7 @@ export default function App() {
                       alignItems: "center",
                     }}
                   >
-                    {!toDos[key].complete && editShow && toDoId === key ? (
+                    {editShow && toDoId === key ? (
                       <TouchableOpacity onPress={() => setEditShow(!editShow)}>
                         <MaterialIcons
                           name="cancel"
