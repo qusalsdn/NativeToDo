@@ -2,6 +2,7 @@ import { StatusBar } from "expo-status-bar";
 import {
   ActivityIndicator,
   Alert,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -71,19 +72,29 @@ export default function App() {
   };
 
   const deleteToDo = (key) => {
-    Alert.alert("삭제하시겠습니까?", "확실합니까?", [
-      { text: "취소" },
-      {
-        text: "확인",
-        style: "destructive",
-        onPress: () => {
-          const newToDos = { ...toDos };
-          delete newToDos[key];
-          setToDos(newToDos);
-          saveToDos(newToDos);
+    if (Platform.OS === "web") {
+      const ok = confirm("삭제하시겠습니까?");
+      if (ok) {
+        const newToDos = { ...toDos };
+        delete newToDos[key];
+        setToDos(newToDos);
+        saveToDos(newToDos);
+      }
+    } else {
+      Alert.alert("삭제하시겠습니까?", "확실합니까?", [
+        { text: "취소" },
+        {
+          text: "확인",
+          style: "destructive",
+          onPress: () => {
+            const newToDos = { ...toDos };
+            delete newToDos[key];
+            setToDos(newToDos);
+            saveToDos(newToDos);
+          },
         },
-      },
-    ]);
+      ]);
+    }
   };
 
   const updateToDo = (key) => {
@@ -140,82 +151,83 @@ export default function App() {
       ) : (
         <ScrollView>
           {/* Object.keys 함수를 이용하면 Object들의 키를 배열로 반환해준다. */}
-          {Object.keys(toDos).map((key) => {
-            return (
-              toDos[key].working === working && (
-                <View key={key} style={styles.toDo}>
-                  <View style={{ flex: 1, justifyContent: "center" }}>
-                    {toDoId === key && editShow ? (
-                      <TextInput
-                        style={styles.input}
-                        placeholder={
-                          working ? "할 일을 추가하세요." : "어디에 가고 싶습니까?"
-                        }
-                        textAlign="center"
-                        onChangeText={onChageEditText}
-                        value={editText}
-                        onSubmitEditing={() => updateToDo(key)}
-                        returnKeyType="done"
-                      />
-                    ) : (
-                      <Text
-                        style={{
-                          ...styles.toDoText,
-                          textDecorationLine: toDos[key].complete
-                            ? "line-through"
-                            : "none",
-                          color: toDos[key].complete ? theme.grey : "white",
-                        }}
-                      >
-                        {toDos[key].text}
-                      </Text>
-                    )}
-                  </View>
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                    }}
-                  >
-                    {editShow && toDoId === key ? (
-                      <TouchableOpacity onPress={() => setEditShow(!editShow)}>
-                        <MaterialIcons
-                          name="cancel"
-                          size={25}
-                          color="white"
-                          style={{ marginLeft: 10 }}
+          {toDos &&
+            Object.keys(toDos).map((key) => {
+              return (
+                toDos[key].working === working && (
+                  <View key={key} style={styles.toDo}>
+                    <View style={{ flex: 1, justifyContent: "center" }}>
+                      {toDoId === key && editShow ? (
+                        <TextInput
+                          style={styles.input}
+                          placeholder={
+                            working ? "할 일을 추가하세요." : "어디에 가고 싶습니까?"
+                          }
+                          textAlign="center"
+                          onChangeText={onChageEditText}
+                          value={editText}
+                          onSubmitEditing={() => updateToDo(key)}
+                          returnKeyType="done"
                         />
-                      </TouchableOpacity>
-                    ) : (
-                      <TouchableOpacity
-                        onPress={() => {
-                          setToDoId(key);
-                          setEditShow(!editShow);
-                          setEditText(toDos[key].text);
-                        }}
-                        style={{ marginLeft: 10 }}
-                      >
-                        <Feather name="edit" size={25} color="white" />
-                      </TouchableOpacity>
-                    )}
-                    <TouchableOpacity
-                      style={{ marginHorizontal: 10 }}
-                      onPress={() => toDoComplete(key)}
-                    >
-                      {toDos[key].complete === false ? (
-                        <Fontisto name="checkbox-passive" size={20} color="white" />
                       ) : (
-                        <Fontisto name="checkbox-active" size={20} color="white" />
+                        <Text
+                          style={{
+                            ...styles.toDoText,
+                            textDecorationLine: toDos[key].complete
+                              ? "line-through"
+                              : "none",
+                            color: toDos[key].complete ? theme.grey : "white",
+                          }}
+                        >
+                          {toDos[key].text}
+                        </Text>
                       )}
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => deleteToDo(key)}>
-                      <Fontisto name="trash" size={20} color="white" />
-                    </TouchableOpacity>
+                    </View>
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                      }}
+                    >
+                      {editShow && toDoId === key ? (
+                        <TouchableOpacity onPress={() => setEditShow(!editShow)}>
+                          <MaterialIcons
+                            name="cancel"
+                            size={25}
+                            color="white"
+                            style={{ marginLeft: 10 }}
+                          />
+                        </TouchableOpacity>
+                      ) : (
+                        <TouchableOpacity
+                          onPress={() => {
+                            setToDoId(key);
+                            setEditShow(!editShow);
+                            setEditText(toDos[key].text);
+                          }}
+                          style={{ marginLeft: 10 }}
+                        >
+                          <Feather name="edit" size={25} color="white" />
+                        </TouchableOpacity>
+                      )}
+                      <TouchableOpacity
+                        style={{ marginHorizontal: 10 }}
+                        onPress={() => toDoComplete(key)}
+                      >
+                        {toDos[key].complete === false ? (
+                          <Fontisto name="checkbox-passive" size={20} color="white" />
+                        ) : (
+                          <Fontisto name="checkbox-active" size={20} color="white" />
+                        )}
+                      </TouchableOpacity>
+                      <TouchableOpacity onPress={() => deleteToDo(key)}>
+                        <Fontisto name="trash" size={20} color="white" />
+                      </TouchableOpacity>
+                    </View>
                   </View>
-                </View>
-              )
-            );
-          })}
+                )
+              );
+            })}
         </ScrollView>
       )}
     </View>
